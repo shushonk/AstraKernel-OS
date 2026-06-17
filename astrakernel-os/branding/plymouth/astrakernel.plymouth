@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=AstraKernel
+Description=AstraKernel Custom Boot Splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/astrakernel
+ScriptFile=/usr/share/plymouth/themes/astrakernel/astrakernel.script

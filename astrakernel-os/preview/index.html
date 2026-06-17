@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AstraKernel OS Visual Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-[#0E1117] min-h-screen flex flex-col items-center justify-center p-2 font-sans m-0 overflow-hidden" id="body">
+
+  <div class="w-full max-w-[95vw] xl:max-w-7xl mx-auto mb-4 flex flex-wrap gap-3 mt-2 flex-shrink-0" id="outer-controls">
+    <button data-action="startVM" class="flex items-center gap-1.5 bg-[#238636] hover:bg-[#2EA043] text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"><i data-lucide="play" class="w-4 h-4 text-white"></i> Start VM</button>
+    <button data-action="restartVM" class="flex items-center gap-1.5 bg-[#1F6FEB] hover:bg-[#388BFD] text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"><i data-lucide="rotate-ccw" class="w-4 h-4 text-white"></i> Restart</button>
+    <button data-action="shutdownVM" class="flex items-center gap-1.5 bg-[#DA3633] hover:bg-[#F85149] text-white px-3 py-1.5 rounded text-sm font-medium transition-colors"><i data-lucide="square" class="w-4 h-4 text-white"></i> Shutdown</button>
+  </div>
+
+  <div id="vbox-container" class="bg-[#F0F0F0] border border-[#30363D] shadow-2xl flex flex-col overflow-hidden w-full max-w-[95vw] xl:max-w-7xl aspect-video rounded-lg transition-all duration-300 relative">
+    <div class="bg-[#E5E5E5] border-b border-[#D4D4D4] px-4 py-1.5 flex items-center justify-between text-black select-none">
+      <div class="flex items-center gap-3">
+        <i data-lucide="box" class="w-4 h-4 text-blue-600"></i>
+        <span class="text-xs font-semibold tracking-wide flex items-center gap-2">
+          AstraKernel OS [Running] - Oracle VM VirtualBox
+        </span>
+      </div>
+      <div class="flex gap-2">
+        <div class="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]"></div>
+        <div class="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]"></div>
+        <div class="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]"></div>
+      </div>
+    </div>
+
+    <!-- Menubar -->
+    <div class="bg-[#F0F0F0] border-b border-[#D4D4D4] px-2 py-1 flex items-center gap-4 text-xs text-black select-none relative z-[80]" id="vbox-menu">
+      <div class="relative menu-wrapper">
+        <span class="hover:bg-[#D4D4D4] px-2 py-0.5 rounded cursor-pointer" data-action="toggleMenu" data-val="menu-machine">Machine</span>
+        <div id="menu-machine" class="menu-popup hidden absolute top-full left-0 mt-1 bg-white border border-gray-300 shadow-md rounded py-1 min-w-[150px]">
+          <div class="px-3 py-1 hover:bg-blue-500 hover:text-white cursor-pointer" data-action="startVM">Start</div>
+          <div class="px-3 py-1 hover:bg-blue-500 hover:text-white cursor-pointer" data-action="restartVM">Restart</div>
+          <div class="px-3 py-1 hover:bg-blue-500 hover:text-white cursor-pointer" data-action="shutdownVM">Shutdown</div>
+          <div class="h-px bg-gray-200 my-1"></div>
+          <div class="px-3 py-1 hover:bg-blue-500 hover:text-white cursor-pointer" data-action="shutdownVM">Close</div>
+        </div>
+      </div>
+      
+      <div class="relative menu-wrapper">
+        <span class="hover:bg-[#D4D4D4] px-2 py-0.5 rounded cursor-pointer" data-action="toggleMenu" data-val="menu-view">View</span>
+        <div id="menu-view" class="menu-popup hidden absolute top-full left-0 mt-1 bg-white border border-gray-300 shadow-md rounded py-1 min-w-[150px]">
+          <div class="px-3 py-1 hover:bg-blue-500 hover:text-white cursor-pointer" data-action="toggleFullscreen">Fullscreen</div>
+          <div class="px-3 py-1 hover:bg-blue-500 hover:text-white cursor-pointer" data-action="toast" data-val="Scale mode enabled">Scale Mode</div>
+          <div class="px-3 py-1 hover:bg-blue-500 hover:text-white cursor-pointer" data-action="toast" data-val="Zoom reset">Reset Zoom</div>
+        </div>
+      </div>
+      
+      <div class="relative menu-wrapper">
+        <span class="hover:bg-[#D4D4D4] px-2 py-0.5 rounded cursor-pointer" data-action="toggleMenu" data-val="menu-input">Input</span>
+        <div id="menu-input" class="menu-popup hidden absolute top-full left-0 mt-1 bg-white border border-gray-300 shadow-md rounded py-1 min-w-[150px]">
+          <div class="px-3 py-1 hover:bg-blue-500 hover:text-white cursor-pointer" data-action="toast" data-val="Keyboard captured">Keyboard</div>
+          <div class="px-3 py-1 hover:bg-blue-500 hover:text-white cursor-pointer" data-action="toast" data-val="Mouse integration enabled">Mouse Integration</div>
+        </div>
+      </div>
+
+      <div class="relative menu-wrapper">
+        <span class="hover:bg-[#D4D4D4] px-2 py-0.5 rounded cursor-pointer" data-action="toggleMenu" data-val="menu-devices">Devices</span>
+        <div id="menu-devices" class="menu-popup hidden absolute top-full left-0 mt-1 bg-white border border-gray-300 shadow-md rounded py-1 min-w-[150px]">
+          <div class="px-3 py-1 hover:bg-blue-500 hover:text-white cursor-pointer" data-action="toast" data-val="AstraKernelOS.iso mounted">Optical Drives</div>
+          <div class="px-3 py-1 hover:bg-blue-500 hover:text-white cursor-pointer" data-action="toggleMenu" data-val="network-popup">Network</div>
+          <div class="px-3 py-1 hover:bg-blue-500 hover:text-white cursor-pointer" data-action="toast" data-val="No USB device attached">USB</div>
+        </div>
+      </div>
+
+      <div class="relative menu-wrapper">
+        <span class="hover:bg-[#D4D4D4] px-2 py-0.5 rounded cursor-pointer" data-action="toggleMenu" data-val="menu-help">Help</span>
+        <div id="menu-help" class="menu-popup hidden absolute top-full left-0 mt-1 bg-white border border-gray-300 shadow-md rounded py-1 min-w-[200px]">
+          <div class="px-3 py-1 hover:bg-blue-500 hover:text-white cursor-pointer" data-app="about">About VirtualBox Preview</div>
+          <div class="px-3 py-1 hover:bg-blue-500 hover:text-white cursor-pointer" data-app="about">About AstraKernel OS</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen Content Wrapper -->
+    <div class="flex-1 overflow-hidden relative bg-black text-white selection:bg-cyan-500/30" id="screen-wrapper">
+      
+      <!-- Off Screen -->
+      <div id="screen-off" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black z-[10]">
+        <i data-lucide="monitor" class="w-16 h-16 text-[#30363D]"></i>
+        <p class="text-[#8B949E] mt-4 font-mono text-sm">Powered Off</p>
+      </div>
+
+      <!-- Shutdown Screen -->
+      <div id="screen-shutdown" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-black z-[10]">
+        <i data-lucide="hexagon" class="w-16 h-16 text-cyan-400/50 animate-pulse"></i>
+        <div class="text-[#8B949E] mt-4 font-mono text-sm inline-block text-left whitespace-nowrap" id="shutdown-text">
+          Shutting down system...
+        </div>
+      </div>
+
+      <!-- GRUB Screen -->
+      <div id="screen-grub" class="hidden absolute inset-0 bg-black text-[#A5D6FF] font-mono p-8 text-sm sm:text-base border-[12px] border-blue-900/30 z-[10]">
+        <div class="border-2 border-[#A5D6FF]/50 mx-auto mt-10 max-w-2xl bg-black">
+          <div class="bg-blue-900 text-white text-center font-bold py-1">GNU GRUB version 2.06</div>
+          <div class="p-4 space-y-1">
+            <div class="bg-white text-black px-2 py-0.5 shadow-sm">*AstraKernel OS</div>
+            <div class="px-2 py-0.5 text-gray-400"> Advanced options for AstraKernel OS</div>
+            <div class="px-2 py-0.5 text-gray-400"> Memory test (memtest86+)</div>
+            <div class="px-2 py-0.5 text-gray-400"> Boot from local disk</div>
+          </div>
+        </div>
+        <div class="max-w-2xl mx-auto mt-4 text-xs text-gray-400 leading-relaxed text-center">
+          Use the &uarr; and &darr; keys to select which entry is highlighted.<br/>
+          Press enter to boot the selected OS, 'e' to edit the commands before booting or 'c' for a command-line.<br/><br/>
+          <span class="text-blue-400 animate-pulse">The highlighted entry will be executed automatically...</span>
+        </div>
+      </div>
+
+      <!-- Boot Screen -->
+      <div id="screen-boot" class="hidden absolute inset-0 bg-[#050B14] flex flex-col relative overflow-hidden crt-flicker z-[10]">
+        <div class="absolute inset-0 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none"></div>
+        <div class="flex-1 flex flex-col items-center justify-center z-10 gap-8">
+          <div class="relative">
+            <i data-lucide="hexagon" class="w-24 h-24 text-cyan-400 animate-pulse"></i>
+            <div class="absolute inset-0 blur-xl bg-cyan-400/20 rounded-full"></div>
+          </div>
+          <div class="text-center">
+            <h2 class="text-3xl font-light tracking-[0.2em] text-white">ASTRA<span class="font-bold text-cyan-400">KERNEL</span></h2>
+            <p class="text-gray-400 mt-2 font-mono text-xs">Initializing system...</p>
+          </div>
+          <div class="w-64 mt-10 bg-gray-900 rounded-full h-1 overflow-hidden border border-gray-800">
+            <div id="boot-progress-bar" class="bg-cyan-400 h-full w-0 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(34,211,238,0.8)]"></div>
+          </div>
+        </div>
+        <div class="h-48 bg-black/80 font-mono text-xs text-gray-300 p-4 flex flex-col justify-end relative z-10 border-t border-gray-800 shadow-[0_-10px_20px_rgba(0,0,0,0.5)] overflow-hidden">
+          <div id="boot-logs-container">
+            <div id="boot-loading-spinner" class="animate-pulse mt-1 text-cyan-500 flex gap-3 hidden">
+              <span class="text-yellow-500">[ WAIT ]</span><span>Loading module...</span>_
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Login Screen -->
+      <div id="screen-login" class="hidden absolute inset-0 flex flex-col items-center justify-center animate-in fade-in duration-700 bg-cover bg-center z-[10]" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1542224566-6e85f2e6772f?q=80&w=2000&auto=format&fit=crop')">
+        <div class="absolute top-4 right-6 flex items-center gap-4 text-white drop-shadow-md">
+          <i data-lucide="wifi" class="w-4 h-4"></i>
+          <i data-lucide="battery" class="w-4 h-4"></i>
+          <span class="text-sm font-semibold system-clock"></span>
+        </div>
+        <div class="bg-black/40 backdrop-blur-xl border border-white/20 p-10 rounded-2xl flex flex-col items-center shadow-2xl animate-in zoom-in duration-500 w-[340px]">
+          <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 mb-6 flex items-center justify-center shadow-lg border-4 border-white/10">
+            <i data-lucide="user" class="w-12 h-12 text-white"></i>
+          </div>
+          <h2 class="text-2xl font-bold text-white mb-1">astra</h2>
+          <p class="text-gray-300 text-sm mb-6">AstraKernel OS</p>
+          <div class="w-full relative">
+            <input type="password" placeholder="Password" id="login-password" onkeydown="if(event.key==='Enter') document.querySelector('[data-action=showDesktop]').click()" class="w-full bg-black/60 border border-white/20 text-white rounded-lg px-4 py-3 outline-none focus:border-cyan-400 focus:bg-black/80 transition-all shadow-inner backdrop-blur-md">
+            <button data-action="showDesktop" class="absolute right-2 top-2 bottom-2 bg-cyan-500 hover:bg-cyan-400 text-white rounded-md w-10 flex items-center justify-center transition-colors">
+              <i data-lucide="arrow-right" class="w-4 h-4 text-white hover:pointer-events-none"></i>
+            </button>
+          </div>
+        </div>
+        <div class="absolute bottom-6 flex justify-between w-full px-8 text-white/60 text-xs shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+          <div class="flex items-center gap-2"><i data-lucide="hexagon" class="w-3 h-3"></i> AstraKernel OS v0.1 • Debian Base</div>
+          <div class="flex items-center gap-4">
+             <i data-lucide="power" class="w-4 h-4 hover:text-red-400 cursor-pointer transition-colors" data-action="shutdownVM"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop Screen -->
+      <div id="screen-desktop" class="hidden absolute inset-0 flex flex-col overflow-hidden text-sm bg-cover bg-center animate-in fade-in duration-500 z-[10]" style="background-image: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1542224566-6e85f2e6772f?q=80&w=2000&auto=format&fit=crop')">
+        <div class="absolute top-7 left-1/2 -translate-x-1/2 bg-yellow-500/90 text-black text-[10px] font-bold px-3 py-1 rounded-bl-sm rounded-br-sm shadow-md z-[40] pointer-events-none uppercase tracking-widest backdrop-blur-md border border-yellow-400 flex flex-col items-center">
+          <span>Visual Demo Mode</span>
+          <span class="text-[8px] opacity-80 normal-case tracking-normal">Real ISO builder available separately</span>
+        </div>
+
+        <!-- Top Panel -->
+        <div class="h-7 bg-black/60 backdrop-blur-md flex items-center justify-between px-3 text-white text-xs select-none shadow-sm z-[60]" id="desktop-panel">
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-1.5 font-bold hover:text-cyan-400 cursor-pointer transition-colors menu-wrapper" data-action="toggleMenu" data-val="applications-menu">
+              <i data-lucide="hexagon" class="w-3.5 h-3.5 text-cyan-400"></i> Applications
+            </div>
+            <span class="w-px h-3 bg-white/30 hidden sm:block"></span>
+            <span class="hidden sm:block hover:text-gray-300 cursor-pointer menu-wrapper" data-action="toggleMenu" data-val="places-menu">Places</span>
+            <span class="hidden sm:block hover:text-gray-300 cursor-pointer" data-app="terminal">Terminal</span>
+          </div>
+          <div class="absolute left-1/2 -translate-x-1/2 font-semibold flex items-center gap-2">
+            <span class="system-clock-full"></span>
+          </div>
+          <div class="flex items-center gap-3.5">
+             <div class="menu-wrapper flex items-center gap-2">
+                <i data-lucide="wifi" class="w-3.5 h-3.5 cursor-pointer hover:text-cyan-400" data-action="toggleMenu" data-val="network-popup"></i>
+                <i data-lucide="volume-2" class="w-3.5 h-3.5 cursor-pointer hover:text-cyan-400" data-action="toggleMenu" data-val="volume-popup"></i>
+                <i data-lucide="battery" class="w-3.5 h-3.5 cursor-pointer hover:text-cyan-400" data-action="toggleMenu" data-val="battery-popup"></i>
+             </div>
+            <span class="w-px h-3 bg-white/30"></span>
+            <i data-lucide="settings" class="w-3.5 h-3.5 cursor-pointer hover:text-gray-300" data-app="settings"></i>
+            <div class="menu-wrapper"><i data-lucide="power" class="w-3.5 h-3.5 cursor-pointer hover:text-red-400" data-action="toggleMenu" data-val="power-menu"></i></div>
+          </div>
+        </div>
+
+        <!-- Popups for panel -->
+        <div id="applications-menu" class="menu-popup hidden absolute top-7 left-3 w-64 bg-black/80 backdrop-blur-xl border border-white/10 rounded-b-xl shadow-2xl z-[70] p-2 text-sm text-gray-200">
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-3" data-app="terminal"><i data-lucide="terminal" class="w-4 h-4 text-green-400"></i> Terminal</div>
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-3" data-app="files"><i data-lucide="folder-open" class="w-4 h-4 text-blue-400"></i> Files</div>
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-3" data-app="browser"><i data-lucide="compass" class="w-4 h-4 text-blue-300"></i> Browser</div>
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-3" data-app="code"><i data-lucide="code-2" class="w-4 h-4 text-yellow-400"></i> Code Editor</div>
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-3" data-app="settings"><i data-lucide="settings" class="w-4 h-4 text-gray-400"></i> Settings</div>
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-3" data-app="monitor"><i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i> System Monitor</div>
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-3" data-app="welcome"><i data-lucide="hexagon" class="w-4 h-4 text-cyan-400"></i> Astra Welcome</div>
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-3" data-app="docs"><i data-lucide="align-left" class="w-4 h-4 text-purple-400"></i> Documentation</div>
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-3" data-app="installer"><i data-lucide="check-square" class="w-4 h-4 text-green-500"></i> Installer</div>
+           <div class="h-px bg-white/10 my-1"></div>
+           <div class="p-2 hover:bg-red-500/20 text-red-300 rounded cursor-pointer flex items-center gap-3" data-action="shutdownVM"><i data-lucide="power" class="w-4 h-4"></i> Shutdown</div>
+        </div>
+
+        <div id="places-menu" class="menu-popup hidden absolute top-7 left-28 w-48 bg-black/80 backdrop-blur-xl border border-white/10 rounded-b-xl shadow-2xl z-[70] p-2 text-sm text-gray-200">
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-2" data-app="files"><i data-lucide="folder" class="w-4 h-4 text-blue-400"></i> Home</div>
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-2" data-app="files"><i data-lucide="monitor" class="w-4 h-4 text-blue-400"></i> Desktop</div>
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-2" data-app="files"><i data-lucide="file" class="w-4 h-4 text-blue-400"></i> Documents</div>
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-2" data-app="files"><i data-lucide="download" class="w-4 h-4 text-blue-400"></i> Downloads</div>
+           <div class="h-px bg-white/10 my-1"></div>
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-2" data-app="files"><i data-lucide="hard-drive" class="w-4 h-4 text-gray-400"></i> Computer</div>
+        </div>
+
+        <div id="power-menu" class="menu-popup hidden absolute top-7 right-3 w-40 bg-black/80 backdrop-blur-xl border border-white/10 rounded-b-xl shadow-2xl z-[70] p-2 text-sm text-gray-200">
+           <div class="p-2 hover:bg-white/10 rounded cursor-pointer flex items-center gap-3" data-action="showLogin"><i data-lucide="user" class="w-4 h-4 text-gray-400"></i> Lock</div>
+           <div class="p-2 hover:bg-red-500/20 text-red-300 rounded cursor-pointer flex items-center gap-3" data-action="restartVM"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Restart</div>
+           <div class="p-2 hover:bg-red-500/20 text-red-300 rounded cursor-pointer flex items-center gap-3" data-action="shutdownVM"><i data-lucide="power" class="w-4 h-4"></i> Shutdown</div>
+        </div>
+        
+        <div id="network-popup" class="menu-popup hidden absolute top-7 right-20 w-56 bg-black/80 backdrop-blur-xl border border-white/10 rounded-b-xl shadow-2xl z-[70] p-3 text-sm text-gray-200">
+           <div class="font-bold border-b border-white/10 pb-2 mb-2">Network Settings</div>
+           <div class="flex items-center justify-between p-2 hover:bg-white/10 rounded cursor-pointer"><span class="flex items-center gap-2"><i data-lucide="wifi" class="w-4 h-4 text-green-400"></i> Wi-Fi Configured</span></div>
+           <div class="flex items-center justify-between p-2 hover:bg-white/10 rounded cursor-pointer"><span class="flex items-center gap-2"><i data-lucide="network" class="w-4 h-4 text-blue-400"></i> NAT Bridge</span></div>
+        </div>
+
+        <div id="volume-popup" class="menu-popup hidden absolute top-7 right-14 w-48 bg-black/80 backdrop-blur-xl border border-white/10 rounded-b-xl shadow-2xl z-[70] p-3 text-sm text-gray-200">
+           <div class="flex items-center gap-3">
+             <i data-lucide="volume-2" class="w-4 h-4"></i>
+             <input type="range" class="w-full accent-cyan-400" min="0" max="100" value="80">
+           </div>
+        </div>
+        
+        <div id="battery-popup" class="menu-popup hidden absolute top-7 right-10 w-48 bg-black/80 backdrop-blur-xl border border-white/10 rounded-b-xl shadow-2xl z-[70] p-3 text-sm text-gray-200">
+           <div class="flex items-center gap-3 p-1">
+             <i data-lucide="battery" class="w-4 h-4 text-green-400"></i>
+             <span>89% (Charging)</span>
+           </div>
+        </div>
+
+        <!-- Desktop Area -->
+        <div class="flex-1 relative" id="desktop-area">
+          <div class="flex flex-col gap-6 pt-8 pl-6 items-center z-[15] w-24 relative">
+            <div class="desktop-item flex flex-col items-center cursor-pointer hover:bg-white/10 p-2 rounded-lg transition-colors group" data-app="files"><i data-lucide="folder-open" class="w-10 h-10 text-blue-400 fill-blue-500/20 drop-shadow-lg group-hover:scale-105 transition-transform mb-1"></i><span class="text-xs text-white font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Home</span></div>
+            <div class="desktop-item flex flex-col items-center cursor-pointer hover:bg-white/10 p-2 rounded-lg transition-colors group" data-app="terminal"><i data-lucide="terminal" class="w-10 h-10 text-green-400 drop-shadow-lg group-hover:scale-105 transition-transform mb-1"></i><span class="text-xs text-white font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Terminal</span></div>
+            <div class="desktop-item flex flex-col items-center cursor-pointer hover:bg-white/10 p-2 rounded-lg transition-colors group" data-app="browser"><i data-lucide="compass" class="w-10 h-10 text-gray-100 drop-shadow-lg group-hover:scale-105 transition-transform mb-1"></i><span class="text-xs text-white font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Browser</span></div>
+            <div class="desktop-item flex flex-col items-center cursor-pointer hover:bg-white/10 p-2 rounded-lg transition-colors group" data-app="docs"><i data-lucide="align-left" class="w-10 h-10 text-purple-400 drop-shadow-lg group-hover:scale-105 transition-transform mb-1"></i><span class="text-xs text-white font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">README</span></div>
+            <div class="desktop-item flex flex-col items-center cursor-pointer hover:bg-white/10 p-2 rounded-lg transition-colors group" data-app="monitor"><i data-lucide="box" class="w-10 h-10 text-blue-300 drop-shadow-lg group-hover:scale-105 transition-transform mb-1"></i><span class="text-xs text-white font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">System</span></div>
+            <div class="desktop-item flex flex-col items-center cursor-pointer hover:bg-white/10 p-2 rounded-lg transition-colors group" data-app="installer"><i data-lucide="check-square" class="w-10 h-10 text-green-500 drop-shadow-lg group-hover:scale-105 transition-transform mb-1"></i><span class="text-xs text-white font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">Install</span></div>
+          </div>
+
+          <div id="windows-container" class="absolute inset-0 pointer-events-none z-[30]"></div>
+
+          <div class="absolute top-[45px] right-[20px] w-[240px] bg-black/60 backdrop-blur-xl rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] p-4 text-xs text-white z-[20] hidden lg:block border border-white/10 pointer-events-none">
+            <div class="flex items-center gap-2 text-gray-300 font-bold mb-4 uppercase tracking-wider pb-2 border-b border-white/10"><i data-lucide="cpu" class="w-3.5 h-3.5 text-cyan-400"></i> System Status</div>
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between mb-1.5"><span class="text-gray-300">CPU Usage</span><span class="font-mono text-cyan-400" id="sys-cpu-text">12.0%</span></div>
+                <div class="w-full bg-black/50 rounded-full h-1.5 overflow-hidden shadow-inner flex"><div id="sys-cpu-bar" class="bg-cyan-400 h-full rounded-full transition-all duration-1000 ease-out" style="width: 12%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1.5"><span class="text-gray-300">Memory</span><span class="font-mono text-[#A6E3A1]" id="sys-ram-text">819MB / 4GB</span></div>
+                <div class="w-full bg-black/50 rounded-full h-1.5 overflow-hidden shadow-inner flex"><div id="sys-ram-bar" class="bg-[#A6E3A1] h-full rounded-full transition-all duration-1000 ease-out" style="width: 20%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1.5"><span class="text-gray-300">Disk Root</span><span class="font-mono text-[#F9E2AF]">12%</span></div>
+                <div class="w-full bg-black/50 rounded-full h-1.5 shadow-inner flex overflow-hidden"><div class="bg-[#F9E2AF] h-full rounded-full w-[12%]"></div></div>
+              </div>
+              <div class="pt-3 mt-1 border-t border-white/10 flex justify-between items-center text-gray-400">
+                <div class="flex items-center gap-2 font-medium"><div class="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]"></div> Network</div>
+                <span class="font-mono text-white transition-all duration-300" id="sys-net-text">1.2 MB/s &darr;</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-[40]">
+            <div class="bg-black/60 backdrop-blur-xl px-4 py-2.5 rounded-2xl flex items-center justify-center gap-4 border border-white/10 shadow-[0_15px_40px_rgba(0,0,0,0.8)] pointer-events-auto">
+              <div class="dock-item group" data-app="browser" data-type="dock"><div class="w-12 h-12 rounded-xl flex items-center justify-center bg-[#1E1E2E] shadow-lg border border-white/10 group-hover:scale-125 group-hover:-translate-y-3 transition-all duration-300 ease-out origin-bottom"><i data-lucide="compass" class="w-6 h-6 text-blue-400"></i></div><div class="dock-tooltip opacity-0 transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 text-[10px] absolute -top-8 bg-black/80 px-2 py-1 rounded-md text-white whitespace-nowrap transition-all duration-200 border border-white/20">Browser</div><div class="dock-dot"></div></div>
+              <div class="dock-item group" data-app="files" data-type="dock"><div class="w-12 h-12 rounded-xl flex items-center justify-center bg-blue-600 shadow-lg border border-white/10 group-hover:scale-125 group-hover:-translate-y-3 transition-all duration-300 ease-out origin-bottom"><i data-lucide="folder-open" class="w-6 h-6 text-white"></i></div><div class="dock-tooltip opacity-0 transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 text-[10px] absolute -top-8 bg-black/80 px-2 py-1 rounded-md text-white whitespace-nowrap transition-all duration-200 border border-white/20">Files</div><div class="dock-dot"></div></div>
+              <div class="dock-item group" data-app="terminal" data-type="dock"><div class="w-12 h-12 rounded-xl flex items-center justify-center bg-gray-800 shadow-lg border border-white/10 group-hover:scale-125 group-hover:-translate-y-3 transition-all duration-300 ease-out origin-bottom"><i data-lucide="terminal" class="w-6 h-6 text-green-400"></i></div><div class="dock-tooltip opacity-0 transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 text-[10px] absolute -top-8 bg-black/80 px-2 py-1 rounded-md text-white whitespace-nowrap transition-all duration-200 border border-white/20">Terminal</div><div class="dock-dot"></div></div>
+              <div class="dock-item group" data-app="code" data-type="dock"><div class="w-12 h-12 rounded-xl flex items-center justify-center bg-gray-900 shadow-lg border border-white/10 group-hover:scale-125 group-hover:-translate-y-3 transition-all duration-300 ease-out origin-bottom"><i data-lucide="code-2" class="w-6 h-6 text-blue-400"></i></div><div class="dock-tooltip opacity-0 transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 text-[10px] absolute -top-8 bg-black/80 px-2 py-1 rounded-md text-white whitespace-nowrap transition-all duration-200 border border-white/20">Code Editor</div><div class="dock-dot"></div></div>
+              <div class="dock-item group" data-app="settings" data-type="dock"><div class="w-12 h-12 rounded-xl flex items-center justify-center bg-gray-700 shadow-lg border border-white/10 group-hover:scale-125 group-hover:-translate-y-3 transition-all duration-300 ease-out origin-bottom"><i data-lucide="settings" class="w-6 h-6 text-gray-300"></i></div><div class="dock-tooltip opacity-0 transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 text-[10px] absolute -top-8 bg-black/80 px-2 py-1 rounded-md text-white whitespace-nowrap transition-all duration-200 border border-white/20">Settings</div><div class="dock-dot"></div></div>
+              <div class="w-px h-8 bg-white/20 mx-1"></div>
+              <div class="dock-item group" data-app="docs" data-type="dock"><div class="w-12 h-12 rounded-xl flex items-center justify-center bg-purple-600 shadow-lg border border-white/10 group-hover:scale-125 group-hover:-translate-y-3 transition-all duration-300 ease-out origin-bottom"><i data-lucide="align-left" class="w-6 h-6 text-white"></i></div><div class="dock-tooltip opacity-0 transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 text-[10px] absolute -top-8 bg-black/80 px-2 py-1 rounded-md text-white whitespace-nowrap transition-all duration-200 border border-white/20">Docs</div><div class="dock-dot"></div></div>
+              <div class="dock-item group" data-app="installer" data-type="dock"><div class="w-12 h-12 rounded-xl flex items-center justify-center bg-green-700 shadow-lg border border-white/10 group-hover:scale-125 group-hover:-translate-y-3 transition-all duration-300 ease-out origin-bottom"><i data-lucide="check-square" class="w-6 h-6 text-white"></i></div><div class="dock-tooltip opacity-0 transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 text-[10px] absolute -top-8 bg-black/80 px-2 py-1 rounded-md text-white whitespace-nowrap transition-all duration-200 border border-white/20">Installer</div><div class="dock-dot"></div></div>
+              <div class="dock-item group" data-app="welcome" data-type="dock"><div class="w-12 h-12 rounded-xl flex items-center justify-center bg-cyan-600 shadow-lg border border-white/10 group-hover:scale-125 group-hover:-translate-y-3 transition-all duration-300 ease-out origin-bottom"><i data-lucide="hexagon" class="w-6 h-6 text-white"></i></div><div class="dock-tooltip opacity-0 transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 text-[10px] absolute -top-8 bg-black/80 px-2 py-1 rounded-md text-white whitespace-nowrap transition-all duration-200 border border-white/20">Astra Welcome</div><div class="dock-dot"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> 
+
+    <!-- Bottom Status Bar -->
+    <div class="bg-[#F0F0F0] border-t border-[#D4D4D4] px-3 py-1 flex justify-between items-center text-gray-600 text-[10px]">
+      <div class="flex items-center gap-4"><span class="font-semibold text-blue-600" title="Host Key">Right Ctrl</span></div>
+      <div class="flex items-center gap-3">
+        <div id="vm-activity-dot" class="w-2 h-2 rounded-full bg-green-500 animate-pulse mr-2 hidden" title="Activity"></div>
+        <i data-lucide="hard-drive" class="w-3.5 h-3.5" id="status-hd"></i><span class="text-gray-400">|</span>
+        <i data-lucide="video" class="w-3.5 h-3.5"></i><span class="text-gray-400">|</span>
+        <i data-lucide="network" class="w-3.5 h-3.5" id="status-net"></i><span class="text-gray-400">|</span>
+        <i data-lucide="usb" class="w-3.5 h-3.5"></i><span class="text-gray-400">|</span>
+        <i data-lucide="folder" class="w-3.5 h-3.5"></i><span class="text-gray-400">|</span>
+        <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
+      </div>
+    </div>
+  </div>
+
+  <template id="tpl-win-welcome">
+    <div class="p-6 bg-gradient-to-br from-[#1E1E2E] to-[#11111B] h-full flex flex-col pointer-events-auto">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg transform rotate-3"><i data-lucide="hexagon" class="text-white w-8 h-8"></i></div>
+        <div>
+          <h3 class="text-xl font-bold text-white leading-tight">Welcome</h3>
+          <p class="text-cyan-400 text-xs font-mono tracking-wide mt-1">AstraKernel OS v0.1</p>
+        </div>
+      </div>
+      <p class="text-gray-300 text-sm mb-6 leading-relaxed flex-1">A high-performance custom Linux distribution structured for rapid development and aesthetic clarity.</p>
+      <div class="grid grid-cols-2 gap-3 pb-2">
+        <button class="flex items-center gap-2 bg-[#2A2A3C] hover:bg-[#34344A] text-white p-2.5 rounded-lg transition-colors border border-gray-700/50 shadow-sm" data-app="terminal"><i data-lucide="terminal" class="w-3.5 h-3.5 text-green-400"></i><span class="text-xs font-semibold">Terminal</span></button>
+        <button class="flex items-center gap-2 bg-[#2A2A3C] hover:bg-[#34344A] text-white p-2.5 rounded-lg transition-colors border border-gray-700/50 shadow-sm" data-app="files"><i data-lucide="folder" class="w-3.5 h-3.5 text-blue-400"></i><span class="text-xs font-semibold">Browse Files</span></button>
+        <button class="flex items-center gap-2 bg-[#2A2A3C] hover:bg-[#34344A] text-white p-2.5 rounded-lg transition-colors border border-gray-700/50 shadow-sm" data-app="settings"><i data-lucide="settings" class="w-3.5 h-3.5 text-gray-400"></i><span class="text-xs font-semibold">Settings</span></button>
+        <button class="flex items-center gap-2 bg-[#2A2A3C] hover:bg-[#34344A] text-white p-2.5 rounded-lg transition-colors border border-gray-700/50 shadow-sm" data-app="docs"><i data-lucide="align-left" class="w-3.5 h-3.5 text-purple-400"></i><span class="text-xs font-semibold">Read Docs</span></button>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-win-terminal">
+    <div class="p-3 font-mono text-[13px] leading-relaxed text-[#CDD6F4] relative h-full flex flex-col bg-black/90 backdrop-blur-md overflow-auto cursor-text" onclick="const i = this.querySelector('#terminal-input'); if(i) i.focus()">
+      <div id="terminal-output" class="flex flex-col mb-1 space-y-1">
+        <div class="text-cyan-400 font-bold tracking-widest mb-2">ASTRAKERNEL TERMINAL EMULATOR v0.1</div>
+        <div class="mb-2 text-gray-500">System ready. Type 'help' to see available commands or 'astra-info' for system fetch.</div>
+      </div>
+      <div class="flex items-center gap-2 text-green-400 font-bold pb-2 terminal-input-line">
+        astra@astrakernel<span class="text-[#CDD6F4] font-normal">:$ </span>
+        <input type="text" id="terminal-input" class="flex-1 bg-transparent border-none outline-none text-white font-normal shadow-none" autocomplete="off" spellcheck="false" autofocus>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-win-files">
+    <div class="p-4 grid grid-cols-4 gap-4 text-center text-[10px] sm:text-xs text-gray-300 bg-[#1E1E2E] h-full overflow-auto content-start">
+      <div class="flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-white/10 p-2 rounded" data-action="toast" data-val="Directory opened"><i data-lucide="folder" class="w-12 h-12 text-blue-400 fill-blue-500/20"></i> Desktop</div>
+      <div class="flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-white/10 p-2 rounded" data-action="toast" data-val="Directory opened"><i data-lucide="folder" class="w-12 h-12 text-blue-400 fill-blue-500/20"></i> Documents</div>
+      <div class="flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-white/10 p-2 rounded" data-action="toast" data-val="Directory opened"><i data-lucide="folder" class="w-12 h-12 text-blue-400 fill-blue-500/20"></i> Downloads</div>
+      <div class="flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-white/10 p-2 rounded" data-action="toast" data-val="Directory opened"><i data-lucide="folder" class="w-12 h-12 text-blue-400 fill-blue-500/20"></i> Pictures</div>
+      <div class="flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-white/10 p-2 rounded" data-action="toast" data-val="Directory opened"><i data-lucide="folder" class="w-12 h-12 text-blue-400 fill-blue-500/20"></i> Videos</div>
+      <div class="flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-white/10 p-2 rounded" data-action="toast" data-val="Directory opened"><i data-lucide="folder" class="w-12 h-12 text-blue-400 fill-blue-500/20"></i> Projects</div>
+    </div>
+  </template>
+  
+  <template id="tpl-win-browser">
+    <div class="flex flex-col h-full bg-white text-black">
+      <div class="flex items-center gap-2 p-2 bg-gray-200 border-b border-gray-300">
+        <i data-lucide="arrow-left" class="w-4 h-4 text-gray-500 cursor-pointer"></i>
+        <i data-lucide="arrow-right" class="w-4 h-4 text-gray-500 cursor-pointer"></i>
+        <i data-lucide="rotate-cw" class="w-4 h-4 text-gray-700 cursor-pointer"></i>
+        <input type="text" value="https://astrakernel.local" id="browser-url" class="flex-1 px-2 py-1 text-xs rounded border border-gray-300 outline-none w-full">
+      </div>
+      <div class="flex-1 flex flex-col items-center justify-center" id="browser-content">
+        <div class="text-center">
+            <h2 class="text-4xl font-bold text-gray-800 mb-2">AstraSearch</h2>
+            <p class="text-gray-500 mb-6 font-mono">The web is yours to explore.</p>
+            <div class="flex gap-4">
+               <div class="p-4 border rounded shadow hover:shadow-md cursor-pointer text-center outline-none">Documentation</div>
+               <div class="p-4 border rounded shadow hover:shadow-md cursor-pointer text-center outline-none">GitHub Repo</div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-win-editor">
+    <div class="flex h-full bg-[#1E1E1E] text-[#D4D4D4] font-mono text-xs">
+       <div class="w-10 flex flex-col items-center py-2 bg-[#252526] border-r border-[#3C3C3C] text-gray-500">
+         <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div>
+       </div>
+       <div class="flex-1 p-2 whitespace-pre outline-none" contenteditable="true">
+<span class="text-[#569cd6]">function</span> <span class="text-[#dcdcaa]">bootAstraKernel</span>() {
+  <span class="text-[#569cd6]">const</span> system = <span class="text-[#569cd6]">new</span> <span class="text-[#4ec9b0]">Core</span>();
+  system.<span class="text-[#dcdcaa]">init</span>({ graphicUI: <span class="text-[#569cd6]">true</span> });
+  <span class="text-[#c586c0]">return</span> system.<span class="text-[#dcdcaa]">run</span>();
+}
+
+<span class="text-[#6a9955]">// Built for productivity.</span>
+       </div>
+    </div>
+  </template>
+
+  <template id="tpl-win-settings">
+    <div class="flex h-full bg-[#11111B]">
+      <div class="w-1/3 border-r border-gray-700/50 p-3 flex flex-col gap-1.5 bg-[#181825]">
+        <div class="bg-cyan-500/20 text-cyan-400 px-3 py-2.5 rounded text-sm cursor-pointer font-medium border border-cyan-500/30">Appearance</div>
+        <div class="px-3 py-2.5 rounded text-sm cursor-pointer hover:bg-white/5 text-gray-300 font-medium">System Info</div>
+        <div class="px-3 py-2.5 rounded text-sm cursor-pointer hover:bg-white/5 text-gray-300 font-medium">Users</div>
+        <div class="px-3 py-2.5 rounded text-sm cursor-pointer hover:bg-white/5 text-gray-300 font-medium">Network</div>
+      </div>
+      <div class="w-2/3 p-6 overflow-y-auto">
+         <h3 class="text-xl font-bold mb-6 text-white tracking-tight">Appearance</h3>
+         <p class="text-sm text-gray-400 mb-4">Choose your system theme and accent colors.</p>
+         <div class="flex gap-4">
+            <div class="w-28 h-20 bg-[#1e1e2e] rounded-lg border-2 border-cyan-500 flex items-center justify-center text-xs text-white shadow-lg cursor-pointer flex-col gap-2 relative">
+                <span class="w-4 h-4 rounded-full bg-cyan-500 absolute top-2 right-2 flex items-center justify-center"><i data-lucide="check" class="w-3 h-3 text-black"></i></span>
+                <div class="w-12 h-8 bg-[#11111b] rounded border border-gray-700"></div> Dark Theme
+            </div>
+            <div class="w-28 h-20 bg-gray-100 rounded-lg border-2 border-transparent flex items-center justify-center text-xs text-black cursor-pointer flex-col gap-2">
+                <div class="w-12 h-8 bg-white rounded border border-gray-300 shadow-sm"></div> Light Theme
+            </div>
+         </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-win-docs">
+    <div class="p-8 text-gray-300 h-full overflow-y-auto bg-[#181825]">
+      <h1 class="text-2xl font-bold text-white mb-2 flex items-center gap-3"><i data-lucide="hexagon" class="text-cyan-400 w-6 h-6"></i> AstraKernel Documentation</h1>
+      <p class="mb-6 text-sm text-gray-400 border-b border-gray-700/50 pb-4">Version 0.1 • Custom Linux Distribution</p>
+      
+      <div class="bg-blue-500/10 border border-blue-500/30 text-blue-200 p-4 rounded-lg mb-6 text-sm leading-relaxed shadow-inner">
+         <strong>Important Notice:</strong> You are currently viewing the <strong class="text-cyan-400">Visual Demo Mode</strong>. This preview shows how AstraKernel OS looks. The real OS is built into <code>AstraKernelOS.iso</code>.
+      </div>
+      
+      <h2 class="text-lg font-bold text-white mt-6 mb-3">Key Features</h2>
+      <ul class="list-none space-y-2 text-sm text-gray-300 mb-6">
+         <li class="flex items-center gap-2"><i data-lucide="check-square" class="w-4 h-4 text-green-400"></i> Debian/Ubuntu Base for extreme stability</li>
+         <li class="flex items-center gap-2"><i data-lucide="check-square" class="w-4 h-4 text-green-400"></i> Custom XFCE Desktop with modern styling</li>
+         <li class="flex items-center gap-2"><i data-lucide="check-square" class="w-4 h-4 text-green-400"></i> Pre-configured Developer Tools</li>
+      </ul>
+    </div>
+  </template>
+
+  <template id="tpl-win-sysmon">
+    <div class="p-6 bg-[#181825] h-full flex flex-col">
+      <h2 class="text-lg font-bold text-white mb-4"><i data-lucide="cpu" class="inline w-5 h-5 mr-2 text-cyan-400"></i> System Monitor</h2>
+      <div class="space-y-6">
+         <div>
+            <div class="flex justify-between mb-1 text-sm text-gray-300"><span>CPU 1</span><span class="text-cyan-400">24%</span></div>
+            <div class="w-full bg-black rounded-full h-2"><div class="bg-cyan-400 h-full rounded-full" style="width: 24%"></div></div>
+         </div>
+         <div>
+            <div class="flex justify-between mb-1 text-sm text-gray-300"><span>CPU 2</span><span class="text-cyan-400">8%</span></div>
+            <div class="w-full bg-black rounded-full h-2"><div class="bg-cyan-400 h-full rounded-full" style="width: 8%"></div></div>
+         </div>
+         <div>
+            <div class="flex justify-between mb-1 text-sm text-gray-300"><span>Memory</span><span class="text-[#A6E3A1]">819 MiB</span></div>
+            <div class="w-full bg-black rounded-full h-2"><div class="bg-[#A6E3A1] h-full rounded-full" style="width: 20%"></div></div>
+         </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-win-install">
+    <div class="p-8 h-full bg-[#1e1e2e] flex flex-col items-center justify-center text-center">
+       <i data-lucide="hard-drive" class="w-16 h-16 text-cyan-500 mb-4"></i>
+       <h2 class="text-2xl font-bold text-white mb-2">Install AstraKernel OS</h2>
+       <p class="text-gray-400 text-sm mb-6">Install this operating system to your computer's hard drive.</p>
+       <button class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded font-bold shadow-lg transition-colors pointer-events-auto" data-action="toast" data-val="Installer simulation initialized.">Start Installer</button>
+    </div>
+  </template>
+
+  <template id="tpl-win-about">
+    <div class="p-6 bg-[#1e1e2e] h-full flex flex-col items-center text-center">
+      <i data-lucide="hexagon" class="w-16 h-16 text-cyan-400 mt-2 mb-4"></i>
+      <h2 class="text-2xl font-bold text-white">AstraKernel OS</h2>
+      <p class="text-cyan-400 text-sm font-mono mt-1 mb-4">Version 0.1 (x86_64)</p>
+      <p class="text-gray-300 text-sm">A lightweight, custom Linux distribution.</p>
+      <div class="mt-4 pt-4 border-t border-gray-700 w-full text-xs text-gray-500">
+        &copy; 2026 AstraKernel Developers.<br>All rights reserved.
+      </div>
+    </div>
+  </template>
+
+  <script src="script.js"></script>
+</body>
+</html>

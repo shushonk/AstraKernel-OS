@@ -1,0 +1,3 @@
+# GRUB theme configuration placeholder
+title-text: "AstraKernel OS"
+desktop-image: "background.png"

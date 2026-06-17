@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=AstraKernel OS Welcome
+Comment=Welcome Screen and Utility Shortcuts
+Exec=astrakernel-welcome
+Icon=system-help
+Terminal=false
+Type=Application
+Categories=System;Utility;

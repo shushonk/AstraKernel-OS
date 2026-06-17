@@ -1,0 +1,6 @@
+{
+  "name": "AstraKernel OS",
+  "description": "A robust, multiboot-compliant phase 1 x86 operating system kernel source code viewer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
