@@ -1,5 +1,4 @@
 <div align="center">
-  <img width="120" height="120" alt="AstraKernel Logo" src="astrakernel-os/branding/icons/astrakernel-logo.png" />
   <h1>AstraKernel OS</h1>
 </div>
 
